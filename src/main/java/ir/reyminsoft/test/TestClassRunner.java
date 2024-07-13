@@ -14,7 +14,7 @@ import static ir.reyminsoft.Utils.stringify;
 
 public class TestClassRunner {
     public static void assertEquals(final Object o, final Object o2) {
-        if (!Utils.equals(o,o2))
+        if (!Utils.equals(o, o2))
             throw new RuntimeException("assertion error: '" + stringify(o) + "' != '" + stringify(o2) + "'");
     }
 
@@ -26,25 +26,37 @@ public class TestClassRunner {
         final Method[] methods = cls.getDeclaredMethods();
         final List<Method> methodList = new ArrayList<>(List.of(methods));
         methodList.sort(Comparator.comparing(Method::getName));
+        boolean thisOnly = false;
         for (final Method method : methodList) {
-            if (Modifier.isStatic(method.getModifiers())) {
-                if (method.getParameterCount() == 0) {
-                    try {
-                        print("running " + method.getName());
-                        method.invoke(null);
-                        print(method.getName() + " passed!");
-                    } catch (final Throwable e) {
-                        print(method.getName() + " failed:");
-                        final StringWriter stringWriter = new StringWriter();
-                        final PrintWriter printWriter = new PrintWriter(stringWriter);
-                        e.printStackTrace(printWriter);
-                        print("stack printed:\n" + stringWriter);
-                    } finally {
-                        print("-------------------------------------");
-                    }
-                }
+            if (method.getParameterCount() == 0 && method.isAnnotationPresent(ThisTestOnly.class)) {
+                thisOnly = true;
+                run(method);
             }
+        }
+        if (!thisOnly)
+            for (final Method method : methodList) {
+                if (Modifier.isStatic(method.getModifiers())) {
+                    run(method);
+                }
 
+            }
+    }
+
+    private static void run(Method method) {
+        if (method.getParameterCount() == 0) {
+            try {
+                print("running " + method.getName());
+                method.invoke(null);
+                print(method.getName() + " passed!");
+            } catch (final Throwable e) {
+                print(method.getName() + " failed:");
+                final StringWriter stringWriter = new StringWriter();
+                final PrintWriter printWriter = new PrintWriter(stringWriter);
+                e.printStackTrace(printWriter);
+                print("stack printed:\n" + stringWriter);
+            } finally {
+                print("-------------------------------------");
+            }
         }
     }
 }
