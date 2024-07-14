@@ -3,8 +3,9 @@ package ir.reyminsoft;
 import java.util.Calendar;
 
 public class DateConverter {
+
     public static Calendar getGregorianCalendarOf(int year, int month, int day) {
-        Calendar calendar = new Calendar.Builder().build();
+        Calendar calendar = new Calendar.Builder().setCalendarType("gregory").build();
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month - 1 /* january is 0 */);
         calendar.set(Calendar.DAY_OF_MONTH, day);
@@ -13,6 +14,13 @@ public class DateConverter {
 
     public static int getDaysOfMonthGregorian(int year /* might be a leap year */, int month) {
         Calendar calendar = getGregorianCalendarOf(year, month, 1);
+        if (month == 2) {
+            if (!isGregorianLeapYear(year)
+                    && getGregorianCalendarOf(year, 2, 1).getActualMaximum(Calendar.DAY_OF_MONTH) == 29) {
+                return 28;
+                //this is a bug in java's implementation of calendar where a non-leap year has a 29-day-long february
+            }
+        }
         return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
     }
 
@@ -24,29 +32,49 @@ public class DateConverter {
     }
 
     public static boolean isPersianLeapYear(int year) {
-        //todo: implement.
-        return false;
+        if (year > 10000) {
+            throw new RuntimeException("This program is not intended to use for persian dates after 5000/1/1 as we can not determine if it is a leap year or not.");
+        }
+        return PersianLeapYears.persianLeapYears[year];
     }
 
     public static int[] convertDate(final int year, final int month, final int day) {
         Calendar calendar = getGregorianCalendarOf(year, month, day);
-        int persianYear = calendar.get(Calendar.YEAR) - 621;
+        int persianYear = year - 622;
         int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+        if (year == 1582 && month >= 10 && (month != 10 || day >= 15)) {
+            //a historical incident in which the gregorian calendar replaced the julian calendar
+            dayOfYear += 10;
+            //as the julian calendar was off by 10 from seasons, time moved 10 days forward!
+        }
         int persianMonth, persianDayOfMonth = 0;
-        boolean offsetMode = dayOfYear <= 79; /* the start of a Gregorian year coincides
-        with 10th/11th of the 10th persian month (Dey دی). */
+        if (!isGregorianLeapYear(year)
+                && getGregorianCalendarOf(year, 2, 1).getActualMaximum(Calendar.DAY_OF_MONTH) == 29
+                && dayOfYear >= 60) {
+            //this is a bug in java's implementation of calendar where a non-leap year has a 29-day-long february
+            dayOfYear--;
+            //the bug increases the dayOfYears higher than 60 by 1. the code checks for bug's existence before applying the patch.
+
+        }
+        int prevGregLeapCount = getPreviousGregorianLeapYearsCount(year) - getPreviousGregorianLeapYearsCount(623);
+        int prevPersianLeapCount = getPreviousPersianLeapYearCount(persianYear);
+        int leapDiff = prevGregLeapCount - prevPersianLeapCount;
+        int coincide = 10 + leapDiff;
+        int remaining = 90 - coincide;
+        if (isPersianLeapYear(persianYear)) remaining++;
+        boolean offsetMode = remaining >= dayOfYear; /* the start of a Gregorian year coincides
+        with 10th/11th/12th of the 10th persian month (Dey دی). */
         if (offsetMode) {
-            persianYear--;
             persianMonth = 10;
         } else {
-            dayOfYear -= 79;
+            persianYear++;
+            dayOfYear -= remaining;
             persianMonth = 1;
         }
-        boolean isGregorianLeapYear = calendar.getActualMaximum(Calendar.DAY_OF_YEAR) == 366;
         for (; persianMonth != 13; persianMonth++) {
             int daysOfMonth = getDaysOfMonthPersian(persianYear, persianMonth);
-            int offset = offsetMode ? (persianMonth == 10 ? (isGregorianLeapYear ? 11 : 10) : 0) : 0;
-            int remainingDaysOfMonth = (daysOfMonth - offset);
+            int offset = offsetMode ? (persianMonth == 10 ? coincide - 1 : 0) : 0;
+            int remainingDaysOfMonth = daysOfMonth - offset;
             if (dayOfYear > remainingDaysOfMonth) {
                 dayOfYear -= remainingDaysOfMonth;
             } else {
@@ -55,6 +83,55 @@ public class DateConverter {
             }
         }
         return new int[]{persianYear, persianMonth, persianDayOfMonth};
+    }
+
+    public static int getPreviousGregorianLeapYearsCount(int year) {
+        year = year - 1;
+        return Math.max((year / 4) - (
+                year >= 400 ? (year / 400) * 3 + (year % 400) / 100 :
+                        year >= 100 ? (year / 100)
+                                : 0), 0);
+    }
+
+    public static int getPreviousGregorianLeapYear(int year) {
+        if (year % 400 == 0) return year - 4;
+        if (year % 100 == 0) return year - 4;
+        year = year - ((year % 4 == 0) ? 4 : year % 4);
+        if (year % 400 == 0) return year;
+        if (year % 100 == 0) return year - 4;
+        return year;
+    }
+
+    public static int getPreviousPersianLeapYear(int year) {
+        for (year--; year != 0; year--) {
+            if (PersianLeapYears.persianLeapYears[year]) return year;
+        }
+        return 0; //should not happen.
+    }
+
+    public static int getPreviousPersianLeapYearCount(int year) {
+        int count = 0;
+        for (year--; year != 0; year--) {
+            if (PersianLeapYears.persianLeapYears[year]) count++;
+        }
+        return count; //should not happen.
+    }
+
+    public static int countOfDays(final int year, final int month, final int day) {
+        int sum = 0;
+        for (int x = 1; x != year; x++) {
+            sum += isPersianLeapYear(x) ? 366 : 365;
+        }
+        for (int m = 1; m != month; m++) {
+            sum += getDaysOfMonthPersian(year, m);
+        }
+        sum += day;
+        return sum;
+
+    }
+
+    public static boolean isGregorianLeapYear(int year) {
+        return year % 100 == 0 ? (year % 400 == 0) : year % 4 == 0;
     }
 
     public static int[] convertDate(int[] ints) {
