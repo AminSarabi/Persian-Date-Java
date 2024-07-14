@@ -1,11 +1,6 @@
 package ir.reyminsoft.test;
 
 import ir.reyminsoft.DateConverter;
-import ir.reyminsoft.Utils;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.util.List;
 
 import static ir.reyminsoft.test.TestClassRunner.assertEquals;
 
@@ -75,7 +70,7 @@ public class Test implements TestClass {
                 (new int[]{1402, 12, 9}),
         };
         for (int i = 0; i != dates.length; i++) {
-            assertEquals(expectedConversions[i], DateConverter.convertDate(dates[i]));
+            assertEquals(expectedConversions[i], DateConverter.convertGregorianToPersian(dates[i]));
         }
     }
 
@@ -166,7 +161,7 @@ public class Test implements TestClass {
                 (new int[]{1403, 12, 10}),
         };
         for (int i = 0; i != dates.length; i++) {
-            int[] conversion = DateConverter.convertDate(dates[i]);
+            int[] conversion = DateConverter.convertGregorianToPersian(dates[i]);
             assertEquals(expectedConversions[i], conversion);
         }
     }
@@ -203,7 +198,7 @@ public class Test implements TestClass {
         for (int x = 0; x < datesAndExpectedConversions.length; ) {
             int[] date = datesAndExpectedConversions[x++];
             int[] expectedConversion = datesAndExpectedConversions[x++];
-            int[] conversion = DateConverter.convertDate(date);
+            int[] conversion = DateConverter.convertGregorianToPersian(date);
             assertEquals(expectedConversion, conversion);
         }
     }
@@ -646,7 +641,7 @@ public class Test implements TestClass {
         for (int x = 0; x < datesAndExpectedConversions.length; ) {
             int[] date = datesAndExpectedConversions[x++];
             int[] expectedConversion = datesAndExpectedConversions[x++];
-            int[] conversion = DateConverter.convertDate(date);
+            int[] conversion = DateConverter.convertGregorianToPersian(date);
             assertEquals(expectedConversion, conversion);
         }
     }
@@ -658,7 +653,7 @@ public class Test implements TestClass {
         for (int year = 623; year != 2000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
-                    int[] conversion = DateConverter.convertDate(year, month, day);
+                    int[] conversion = DateConverter.convertGregorianToPersian(year, month, day);
                     int no = DateConverter.countOfDays(conversion[0], conversion[1], conversion[2]);
                     if (current != 0) assertEquals(no, ++current);
                     current = no;

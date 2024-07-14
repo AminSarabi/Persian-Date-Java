@@ -35,7 +35,7 @@ public class DateConverter {
         if (year > 10000) {
             throw new RuntimeException("This program is not intended to use for persian dates after 5000/1/1 as we can not determine if it is a leap year or not.");
         }
-        return PersianLeapYears.persianLeapYears[year];
+        return PreDetermined.persianLeapYears[year];
     }
 
     public static int[] convertDate(final int year, final int month, final int day) {
@@ -104,17 +104,13 @@ public class DateConverter {
 
     public static int getPreviousPersianLeapYear(int year) {
         for (year--; year != 0; year--) {
-            if (PersianLeapYears.persianLeapYears[year]) return year;
+            if (PreDetermined.persianLeapYears[year]) return year;
         }
         return 0; //should not happen.
     }
 
     public static int getPreviousPersianLeapYearCount(int year) {
-        int count = 0;
-        for (year--; year != 0; year--) {
-            if (PersianLeapYears.persianLeapYears[year]) count++;
-        }
-        return count; //should not happen.
+        return PreDetermined.numberOfPreviousPersianLeapYears[year];
     }
 
     public static int countOfDays(final int year, final int month, final int day) {
