@@ -73,7 +73,7 @@ public class DateConverter {
     }
 
     public static Calendar getGregorianCalendarOf(int year, int month, int day) {
-        Calendar calendar = new Calendar.Builder().setCalendarType("gregory").build();
+        Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month - 1 /* january is 0 */);
         calendar.set(Calendar.DAY_OF_MONTH, day);
