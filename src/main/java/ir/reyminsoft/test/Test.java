@@ -4,6 +4,7 @@ import ir.reyminsoft.DateConverter;
 import ir.reyminsoft.LeapYearsCalculator;
 import ir.reyminsoft.Utils;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -679,24 +680,27 @@ public class Test implements TestClass {
 
 
 
+    @ThisTestOnly
     public static void test_brute_force_2() {
-        GregorianCalendar calendar = DateConverter.getGregorianCalendarOf(622,3,22);
+        //this test right here caused a lot of headache as it was written with java.calendar before.
+
+        // java.calendar had 2 severe bugs:
+        // GregorianCalendar would consider years like 700 or 500 a leap year. which are not leap years in
+        // gregorian calendar but are in julian calendar.
+
+        // GregorianCalendar would move from 1582/10/04 to 1582/10/15. 4th october was in julian calendar then they
+        // switched to GregorianCalendar. it is not a jump, but a shift of all previous historical events and dates.
+        // for example, 10th of october 1582 exists in gregorian calendar, and in julian calendar, but the julian did not make it!
+
+        // I switched to java.time and this test passes with no patches
+        LocalDateTime calendar = LocalDateTime.of(622,3,22,0,0,0);
         for (int year = 1; year != 3000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
                     int[] date = new int[]{year, month, day};
-                    int[] conversion = DateConverter.convertGregorianToPersian(calendar);
+                    int[] conversion = DateConverter.convertGregorianToPersian(calendar.getYear(),calendar.getMonthValue(),calendar.getDayOfMonth());
                     assertEquals(conversion, date);
-                    calendar.add(Calendar.DAY_OF_MONTH,1);
-
-                    //below is a workaround for java calendar bug...
-                    if (calendar.get(Calendar.MONTH)== Calendar.FEBRUARY){
-                        if (!LeapYearsCalculator.isGregorianLeapYear(calendar.get(Calendar.YEAR))){
-                            if (calendar.get(Calendar.DAY_OF_MONTH)==29){
-                                calendar.add(Calendar.DAY_OF_MONTH,1);
-                            }
-                        }
-                    }
+                    calendar = calendar.plusDays(1);
                 }
             }
         }
