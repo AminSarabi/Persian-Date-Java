@@ -654,7 +654,7 @@ public class Test implements TestClass {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
                     int[] conversion = DateConverter.convertGregorianToPersian(year, month, day);
-                    int no = DateConverter.countOfDays(conversion[0], conversion[1], conversion[2]);
+                    int no = DateConverter.countPersianDaysSinceTheStartOfTheCalendar(conversion[0], conversion[1], conversion[2]);
                     if (current != 0) assertEquals(no, ++current);
                     current = no;
                 }

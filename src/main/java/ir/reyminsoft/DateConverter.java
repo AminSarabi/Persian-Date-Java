@@ -93,12 +93,11 @@ public class DateConverter {
         throw new RuntimeException("index out of bounds " + month + " for a persian month.");
     }
 
-    public static int countOfDays(final int year, final int month, final int day) {
+    public static int countPersianDaysSinceTheStartOfTheCalendar(final int year, final int month, final int day) {
         assertValidPersianDateFields(year, month, day);
         int sum = 0;
-        for (int x = 1; x != year; x++) {
-            sum += isPersianLeapYear(x) ? 366 : 365;
-        }
+        sum += year * 365;
+        sum += getPreviousPersianLeapYearCount(year);
         for (int m = 1; m != month; m++) {
             sum += getDaysOfMonthPersian(year, m);
         }
