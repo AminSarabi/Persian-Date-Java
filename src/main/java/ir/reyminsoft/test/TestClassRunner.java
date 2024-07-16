@@ -18,22 +18,32 @@ public class TestClassRunner {
             throw new RuntimeException("assertion error: '" + stringify(o) + "' != '" + stringify(o2) + "'");
     }
 
+    public static void assertEquals(final Object o, final Object o2, String message) {
+        if (!Utils.equals(o, o2))
+            throw new RuntimeException("assertion error: '" + stringify(o) + "' != '" + stringify(o2) + "' \n" + message);
+    }
+
     public static void print(final String str) {
         System.out.println(str);
     }
 
     public static void run(final Class<? extends TestClass> cls) {
         final Method[] methods = cls.getDeclaredMethods();
-        final List<Method> methodList = new ArrayList<>(List.of(methods));
-        methodList.sort(Comparator.comparing(Method::getName));
-        boolean thisOnly = false;
-        for (final Method method : methodList) {
-            if (method.getParameterCount() == 0 && method.isAnnotationPresent(ThisTestOnly.class)) {
-                thisOnly = true;
-                run(method);
+        final List<Method> methodList = new ArrayList<>();
+        boolean onlyAnnotatedTests = false;
+        for (final Method method : methods) {
+            if (method.getParameterCount() == 0 && method.getReturnType() == Void.TYPE) {
+                if (method.isAnnotationPresent(ThisTestOnly.class)) {
+                    onlyAnnotatedTests = true;
+                    run(method);
+                } else {
+                    methodList.add(method);
+                }
+
             }
         }
-        if (!thisOnly)
+        methodList.sort(Comparator.comparing(Method::getName));
+        if (!onlyAnnotatedTests)
             for (final Method method : methodList) {
                 if (Modifier.isStatic(method.getModifiers())) {
                     run(method);

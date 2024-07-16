@@ -28,6 +28,9 @@ public class Utils {
             if (o instanceof short[] && o2 instanceof short[]) return Arrays.equals((short[]) o, (short[]) o2);
             if (o instanceof Object[] && o2 instanceof Object[]) return Arrays.equals((Object[]) o, (Object[]) o2);
         }
+        if (o instanceof Number && o2 instanceof Number) {
+            return o.toString().equals(o2.toString()); //if both are written the same, they are the same.
+        }
         if (o2.getClass().isArray()) return false;
         return o.equals(o2);
     }

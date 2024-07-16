@@ -3,19 +3,19 @@ package ir.reyminsoft;
 public class LeapYearsCalculator {
 
 
-    public static final int MAX_SUPPORTED_GREGORIAN_YEAR = 3622;
-    public static final int MAX_SUPPORTED_PERSIAN_YEAR = 3622;
+    public static final int MAX_SUPPORTED_GREGORIAN_YEAR = 3621;
+    public static final int MAX_SUPPORTED_PERSIAN_YEAR = 3000;
 
     public static void throwIfGregorianYearIsNotSupported(int year) {
         if (year > MAX_SUPPORTED_GREGORIAN_YEAR)
-            throw new RuntimeException("gregorian years after " + MAX_SUPPORTED_GREGORIAN_YEAR + " are not supported.");
+            throw new RuntimeException("gregorian years after " + MAX_SUPPORTED_GREGORIAN_YEAR + " are not supported: " + year);
     }
 
     public static void throwIfPersianYearIsNotSupported(int year) {
         if (year > MAX_SUPPORTED_GREGORIAN_YEAR - 621) {
             throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 as we can not determine if it is a leap year or not.");
-        } else if (year <= 0) {
-            throw new RuntimeException("This program is not intended to be used for negative dates.");
+        } else if (year < 0) {
+            throw new RuntimeException("This program is not intended to be used for negative dates: " + year);
         }
     }
 
@@ -33,8 +33,8 @@ public class LeapYearsCalculator {
     }
 
 
-    public static boolean isNotGregorianLeapYear(int year) {
-        return !(year % 100 == 0 ? (year % 400 == 0) : year % 4 == 0);
+    public static boolean isGregorianLeapYear(int year) {
+        return (year % 100 == 0 ? (year % 400 == 0) : year % 4 == 0);
     }
 
     public static boolean isPersianLeapYear(int year) {

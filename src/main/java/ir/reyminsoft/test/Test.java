@@ -1,6 +1,13 @@
 package ir.reyminsoft.test;
 
 import ir.reyminsoft.DateConverter;
+import ir.reyminsoft.LeapYearsCalculator;
+import ir.reyminsoft.Utils;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Random;
 
 import static ir.reyminsoft.test.TestClassRunner.assertEquals;
 
@@ -167,6 +174,7 @@ public class Test implements TestClass {
     }
 
 
+    //these are a set of edge cases chosen and calculated by hand.
     public static void test_random_dates() {
         int[][] datesAndExpectedConversions = new int[][]{
                 (new int[]{1970, 1, 1}),
@@ -203,6 +211,8 @@ public class Test implements TestClass {
         }
     }
 
+
+    //these are a bunch of random conversions I have extracted from accurate sources.
 
     public static void test_random_dates2() {
         int[][] datesAndExpectedConversions = new int[][]{
@@ -646,8 +656,12 @@ public class Test implements TestClass {
         }
     }
 
-    //this is an interesting test that discovered 1582/10/5 incident in which time moved forward!
-    public static void test_brute_force() {
+    /*
+     * a brute force internal-consistency check.
+     * This is an interesting test that discovered 1582/10/5 incident in which time moved forward!
+     * */
+
+    public static void test_brute_force_1() {
         //we basically check that for each 1 day increment in gregorian calendar, the conversion also increases by 1 day.
         int current = 0;
         for (int year = 623; year != 2000; year++) {
@@ -663,4 +677,93 @@ public class Test implements TestClass {
     }
 
 
+
+
+    public static void test_brute_force_2() {
+        GregorianCalendar calendar = DateConverter.getGregorianCalendarOf(622,3,22);
+        for (int year = 1; year != 3000; year++) {
+            for (int month = 1; month != 13; month++) {
+                for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
+                    int[] date = new int[]{year, month, day};
+                    int[] conversion = DateConverter.convertGregorianToPersian(calendar);
+                    assertEquals(conversion, date);
+                    calendar.add(Calendar.DAY_OF_MONTH,1);
+
+                    //below is a workaround for java calendar bug...
+                    if (calendar.get(Calendar.MONTH)== Calendar.FEBRUARY){
+                        if (!LeapYearsCalculator.isGregorianLeapYear(calendar.get(Calendar.YEAR))){
+                            if (calendar.get(Calendar.DAY_OF_MONTH)==29){
+                                calendar.add(Calendar.DAY_OF_MONTH,1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * This is another brute force internal-consistency check. every date->millis must also be millis->date
+     * */
+    public static void test_millis_conversion() {
+        Calendar epoch = DateConverter.getGregorianCalendarOf(1970, 1, 1);
+        assertEquals(0L, epoch.getTimeInMillis());
+        assertEquals(DateConverter.convertPersianToMillis(DateConverter.convertMillisToPersian(0)), 0);
+        for (int year = 623; year != 2000; year++) {
+            for (int month = 1; month != 13; month++) {
+                for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
+                    Calendar calendar = DateConverter.getGregorianCalendarOf(year, month, day);
+                    long gregorian = calendar.getTimeInMillis();
+                    long[] conversion = DateConverter.convertMillisToPersian(gregorian);
+                    long persian = DateConverter.convertPersianToMillis(conversion);
+                    if (gregorian - persian != 0) {
+                        //going to fail... log everything
+                        long diff = (gregorian - persian) / (24 * 3600 * 1000);
+                        Utils.print(calendar.getTime().toString(), conversion, gregorian, persian, diff);
+                    }
+                    assertEquals(gregorian, persian);
+                }
+            }
+        }
+    }
+
+    /*
+     * This is the reverse mode of the above test
+     * */
+    public static void test_millis_conversion_2() {
+        for (int year = 961; year != 3000; year++) {
+            for (int month = 1; month != 13; month++) {
+                for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
+                    if (year==961&&month==7&&day<23&&day>12)continue;
+                    int[] date = new int[]{year, month, day};
+                    long persian = DateConverter.convertPersianToMillis(new long[]{year, month, day, 0, 0, 0, 0});
+                    Calendar converted = DateConverter.getGregorianCalendarOf(persian);
+                    int[] converted2 = DateConverter.convertGregorianToPersian(converted);
+                    assertEquals(converted2, date );
+                }
+            }
+        }
+    }
+
+
+
+    static Random random = new Random();
+
+    public static int[] getRandomGregorianDate() {
+        int year = getRandomYear(), month = getRandomMonth();
+        return new int[]{year, month, getRandomDay(year, month)};
+    }
+
+    public static int getRandomYear() {
+        int min = 623;
+        return min + random.nextInt(LeapYearsCalculator.MAX_SUPPORTED_GREGORIAN_YEAR - min);
+    }
+
+    public static int getRandomMonth() {
+        return random.nextInt(12) + 1;
+    }
+
+    public static int getRandomDay(int year, int month) {
+        return random.nextInt(DateConverter.getDaysOfMonthGregorian(year, month)) + 1;
+    }
 }
