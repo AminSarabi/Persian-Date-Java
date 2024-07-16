@@ -1,9 +1,5 @@
 package ir.reyminsoft;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-
 import static ir.reyminsoft.LeapYearsCalculator.*;
 
 public class DateConverter {
@@ -55,12 +51,6 @@ public class DateConverter {
         return new int[]{persianYear, persianMonth, persianDayOfMonth};
     }
 
-    public static int[] convertGregorianToPersian(Calendar calendar) {
-        return convertGregorianToPersian(calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH) + 1, /* january is 0 */
-                calendar.get(Calendar.DAY_OF_MONTH));
-    }
-
     public static int[] convertGregorianToPersian(int[] fields) {
         if (fields.length != 3)
             throw new RuntimeException("invalid fields length " + fields.length + " use [year,month,day]");
@@ -69,27 +59,6 @@ public class DateConverter {
         int day = fields[2];
         return convertGregorianToPersian(year, month, day);
     }
-
-    public static final String timezone = "Atlantic/Reykjavik";
-
-    public static GregorianCalendar getGregorianCalendarOf(int year, int month, int day) {
-        GregorianCalendar calendar = (GregorianCalendar) GregorianCalendar.getInstance();
-        calendar.clear();
-        calendar.setTimeZone(TimeZone.getTimeZone(timezone));
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, month - 1 /* january is 0 */);
-        calendar.set(Calendar.DAY_OF_MONTH, day);
-        return calendar;
-    }
-
-    public static GregorianCalendar getGregorianCalendarOf(long millis) {
-        GregorianCalendar calendar = (GregorianCalendar) GregorianCalendar.getInstance();
-        calendar.clear();
-        calendar.setTimeZone(TimeZone.getTimeZone(timezone));
-        calendar.setTimeInMillis(millis);
-        return calendar;
-    }
-
 
     public static int getDaysOfMonthGregorian(int year /* might be a leap year */, int month) {
         return switch (month) {
@@ -164,19 +133,82 @@ public class DateConverter {
         }
     }
 
+    public static int[] addDaysToPersianDate(int[] persianDate, int days) {
+        assertValidPersianDateFields(persianDate);
+        int year = persianDate[0];
+        int month = persianDate[1];
+        int day = persianDate[2] + days;
+        while (day > getDaysOfMonthPersian(year, month)) {
+            day -= getDaysOfMonthPersian(year, month);
+            month++;
+            if (month > 12) {
+                year++;
+                month = 1;
+            }
 
-    public static long[] convertMillisToPersian(long time) {
-        Calendar calendar = getGregorianCalendarOf(time);
-        int[] dateConversion = convertGregorianToPersian(calendar);
-        return new long[]{
-                dateConversion[0],
-                dateConversion[1],
-                dateConversion[2],
-                calendar.get(Calendar.HOUR_OF_DAY),
-                calendar.get(Calendar.MINUTE),
-                calendar.get(Calendar.SECOND),
-                calendar.get(Calendar.MILLISECOND)
-        };
+        }
+        while (day < 1) {
+            month--;
+            if (month == 0) {
+                month = 12;
+                year--;
+            }
+            day += getDaysOfMonthPersian(year, month); //todo forward backward
+        }
+        while (month < 1) {
+            year--;
+            month += 12;
+            if (month == 0) {
+                month = 12;
+            }
+        }
+        while (month > 12) {
+            year++;
+            month -= 12;
+        }
+        LeapYearsCalculator.throwIfPersianYearIsNotSupported(year);
+        return new int[]{year, month, day};
+    }
+
+    public static int[] addMonthsToPersianDate(int[] persianDate, int months) {
+        assertValidPersianDateFields(persianDate);
+        int year = persianDate[0];
+        int month = persianDate[1] + months;
+        int day = persianDate[2];
+        while (month < 1) {
+            year--;
+            month += 12;
+            if (month == 0) {
+                month = 12;
+            }
+        }
+        while (month > 12) {
+            year++;
+            month -= 12;
+        }
+        return new int[]{year, month, day};
+    }
+
+    public static int[] addYearsToPersianDate(int[] persianDate, int years) {
+        assertValidPersianDateFields(persianDate);
+        int year = persianDate[0] + years;
+        int month = persianDate[1];
+        int day = persianDate[2];
+        return new int[]{year, month, day};
+    }
+
+    public static long[] convertMillisToPersianDateTime(long epochMillis) {
+        long daysToAdd = epochMillis / (24 * 3600 * 1000);
+        int[] conversion = addDaysToPersianDate(new int[]{1348, 10, 11}, (int) daysToAdd);
+        long timeLeft = epochMillis % (24 * 3600 * 1000);
+        long hours = timeLeft / (3600 * 1000);
+        timeLeft %= (3600 * 1000);
+        long minutes = timeLeft / (60 * 1000);
+        timeLeft %= (60 * 1000);
+        long seconds = timeLeft / 1000;
+        timeLeft %= 1000;
+        long millis = timeLeft;
+        return new long[]{conversion[0], conversion[1], conversion[2], hours, minutes, seconds, millis};
     }
 
     public static long convertPersianToMillis(long[] persianDateTime) {
@@ -187,8 +219,8 @@ public class DateConverter {
 
         int days2 = countPersianDaysSinceTheStartOfTheCalendar(1348, 10, 11); //this is 1970/1/1 in persian
 
-        long daysDifference = subtractDaysCountConsidering1582(days, days2);
-        return (daysDifference) * 24L * 3600L * 1000L + //the last day is not finished yet
+        long daysDifference = days - days2; //the last day is not finished yet so no need to add one.
+        return (daysDifference) * 24L * 3600L * 1000L +
                 persianDateTime[3] * 3600L * 1000L +
                 persianDateTime[4] * 60L * 1000L +
                 persianDateTime[5] * 1000L +
@@ -196,22 +228,5 @@ public class DateConverter {
 
     }
 
-    public static long subtractDaysCountConsidering1582(int days, int days2) {
-        //in 1582 time moved 10 days forward in the calendar, but this does not affect timestamps.
-        long daysDifference = days - days2;
-        if (days <= 350840) {
-            daysDifference += 10;
-        }
-        //these are all julian leap years that the stupid so called "GregorianCalendar" of java considers gregorian leap years.
-        // this code tries to cancel those out.
-        if (days <= 320662) daysDifference -= 1;
-        if (days <= 284138) daysDifference -= 1;
-        if (days <= 247614) daysDifference -= 1;
-        if (days <= 174565) daysDifference -= 1;
-        if (days <= 138041) daysDifference -= 1;
-        if (days <= 101517) daysDifference -= 1;
-        if (days <= 28468) daysDifference -= 1;
-        return daysDifference;
-    }
 
 }

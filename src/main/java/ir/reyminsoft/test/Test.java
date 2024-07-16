@@ -4,10 +4,10 @@ import ir.reyminsoft.DateConverter;
 import ir.reyminsoft.LeapYearsCalculator;
 import ir.reyminsoft.Utils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Random;
 
 import static ir.reyminsoft.test.TestClassRunner.assertEquals;
@@ -678,9 +678,6 @@ public class Test implements TestClass {
     }
 
 
-
-
-    @ThisTestOnly
     public static void test_brute_force_2() {
         //this test right here caused a lot of headache as it was written with java.calendar before.
 
@@ -693,12 +690,12 @@ public class Test implements TestClass {
         // for example, 10th of october 1582 exists in gregorian calendar, and in julian calendar, but the julian did not make it!
 
         // I switched to java.time and this test passes with no patches
-        LocalDateTime calendar = LocalDateTime.of(622,3,22,0,0,0);
+        LocalDateTime calendar = LocalDateTime.of(622, 3, 22, 0, 0, 0);
         for (int year = 1; year != 3000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
                     int[] date = new int[]{year, month, day};
-                    int[] conversion = DateConverter.convertGregorianToPersian(calendar.getYear(),calendar.getMonthValue(),calendar.getDayOfMonth());
+                    int[] conversion = DateConverter.convertGregorianToPersian(calendar.getYear(), calendar.getMonthValue(), calendar.getDayOfMonth());
                     assertEquals(conversion, date);
                     calendar = calendar.plusDays(1);
                 }
@@ -710,25 +707,79 @@ public class Test implements TestClass {
      * This is another brute force internal-consistency check. every date->millis must also be millis->date
      * */
     public static void test_millis_conversion() {
-        Calendar epoch = DateConverter.getGregorianCalendarOf(1970, 1, 1);
-        assertEquals(0L, epoch.getTimeInMillis());
-        assertEquals(DateConverter.convertPersianToMillis(DateConverter.convertMillisToPersian(0)), 0);
         for (int year = 623; year != 2000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
-                    Calendar calendar = DateConverter.getGregorianCalendarOf(year, month, day);
-                    long gregorian = calendar.getTimeInMillis();
-                    long[] conversion = DateConverter.convertMillisToPersian(gregorian);
-                    long persian = DateConverter.convertPersianToMillis(conversion);
+                    LocalDateTime localDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
+                    Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+                    long gregorian = instant.toEpochMilli();
+                    long[] persianDateTimConversion = DateConverter.convertMillisToPersianDateTime(gregorian);
+                    long persian = DateConverter.convertPersianToMillis(persianDateTimConversion);
                     if (gregorian - persian != 0) {
                         //going to fail... log everything
                         long diff = (gregorian - persian) / (24 * 3600 * 1000);
-                        Utils.print(calendar.getTime().toString(), conversion, gregorian, persian, diff);
+                        Utils.print(localDateTime, persianDateTimConversion, gregorian, persian, diff);
                     }
                     assertEquals(gregorian, persian);
                 }
             }
         }
+    }
+
+
+
+    public static void add_days_function() {
+        int[][] values = new int[][]{
+                new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 1, 2},
+                new int[]{1, 1, 1}, new int[]{31}, new int[]{1, 2, 1},
+                new int[]{1, 1, 31}, new int[]{1}, new int[]{1, 2, 1},
+                new int[]{1403, 12, 29}, new int[]{1}, new int[]{1403, 12, 30},
+                new int[]{1403, 12, 30}, new int[]{1}, new int[]{1404, 1, 1},
+                new int[]{1, 1, 1}, new int[]{365}, new int[]{2, 1, 1},
+                new int[]{1, 1, 1}, new int[]{366}, new int[]{2, 1, 2},
+        };
+        for (int x = 0; x != values.length; ) {
+            int[] date = values[x++];
+            int add = values[x++][0];
+            int[] expectedResult = values[x++];
+            int[] result = DateConverter.addDaysToPersianDate(date, add);
+            assertEquals(result, expectedResult);
+
+            int[] negativeCaseResult = DateConverter.addDaysToPersianDate(expectedResult, -add);
+            assertEquals(negativeCaseResult, date);
+        }
+    }
+
+
+    public static void add_months_function() {
+        int[][] values = new int[][]{
+                new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 2, 1},
+                new int[]{1, 1, 1}, new int[]{12}, new int[]{2, 1, 1},
+                new int[]{1, 1, 1}, new int[]{24}, new int[]{3, 1, 1},
+                new int[]{2, 12, 5}, new int[]{1}, new int[]{3, 1, 5},
+                new int[]{1403, 12, 5}, new int[]{1}, new int[]{1404, 1, 5},
+        };
+        for (int x = 0; x != values.length; ) {
+            int[] date = values[x++];
+            int add = values[x++][0];
+            int[] expectedResult = values[x++];
+            int[] result = DateConverter.addMonthsToPersianDate(date, add);
+            assertEquals(result, expectedResult);
+
+            int[] negativeCaseResult = DateConverter.addMonthsToPersianDate(expectedResult, -add);
+            assertEquals(negativeCaseResult, date);
+        }
+    }
+
+    public static void test_dates_difference_calculation() {
+        int[][][] datesAddsAndExpectedConversions = new int[][][]{
+                new int[][]{new int[]{1403, 1, 1}, new int[]{1402, 12, 29}, new int[]{0, 0, 2}},
+                new int[][]{new int[]{1403, 1, 1}, new int[]{1404, 1, 1}, new int[]{-1, 0, 0}},
+                new int[][]{new int[]{1, 1, 1}, new int[]{2, 3, 4}, new int[]{-1, -2, -4}},
+                new int[][]{new int[]{2, 3, 4}, new int[]{1, 1, 1}, new int[]{1, 2, 4}},
+                new int[][]{new int[]{1, 1, 1}, new int[]{1, 1, 1}, new int[]{0, 0, 0}},
+                new int[][]{new int[]{1403, 1, 1}, new int[]{1, 1, 1}, new int[]{1402, 0, 0}},
+        };
     }
 
     /*
@@ -738,17 +789,17 @@ public class Test implements TestClass {
         for (int year = 961; year != 3000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
-                    if (year==961&&month==7&&day<23&&day>12)continue;
+                    if (year == 961 && month == 7 && day < 23 && day > 12) continue;
                     int[] date = new int[]{year, month, day};
-                    long persian = DateConverter.convertPersianToMillis(new long[]{year, month, day, 0, 0, 0, 0});
-                    Calendar converted = DateConverter.getGregorianCalendarOf(persian);
-                    int[] converted2 = DateConverter.convertGregorianToPersian(converted);
-                    assertEquals(converted2, date );
+                    long epochMillis = DateConverter.convertPersianToMillis(new long[]{year, month, day, 0, 0, 0, 0});
+                    Instant instant = Instant.ofEpochMilli(epochMillis);
+                    LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+                    int[] converted2 = DateConverter.convertGregorianToPersian(localDateTime.getYear(),localDateTime.getMonthValue(),localDateTime.getDayOfMonth());
+                    assertEquals(converted2, date);
                 }
             }
         }
     }
-
 
 
     static Random random = new Random();
