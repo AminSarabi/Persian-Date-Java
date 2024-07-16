@@ -1,6 +1,65 @@
 package ir.reyminsoft;
 
-public class PreDetermined {
+public class LeapYearsCalculator {
+
+
+    public static final int MAX_SUPPORTED_GREGORIAN_YEAR = 3622;
+    public static final int MAX_SUPPORTED_PERSIAN_YEAR = 3622;
+
+    public static void throwIfGregorianYearIsNotSupported(int year) {
+        if (year > MAX_SUPPORTED_GREGORIAN_YEAR)
+            throw new RuntimeException("gregorian years after " + MAX_SUPPORTED_GREGORIAN_YEAR + " are not supported.");
+    }
+
+    public static void throwIfPersianYearIsNotSupported(int year) {
+        if (year > MAX_SUPPORTED_GREGORIAN_YEAR - 621) {
+            throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 as we can not determine if it is a leap year or not.");
+        } else if (year <= 0) {
+            throw new RuntimeException("This program is not intended to be used for negative dates.");
+        }
+    }
+
+    public static int getPreviousGregorianLeapYearsCount(int year) {
+        year = year - 1;
+        return Math.max((year / 4) - (
+                year >= 400 ? (year / 400) * 3 + (year % 400) / 100 :
+                        year >= 100 ? (year / 100)
+                                : 0), 0);
+    }
+
+    public static int getPreviousPersianLeapYearCount(int year) {
+        throwIfPersianYearIsNotSupported(year);
+        return numberOfPreviousPersianLeapYears[year];
+    }
+
+
+    public static boolean isNotGregorianLeapYear(int year) {
+        return !(year % 100 == 0 ? (year % 400 == 0) : year % 4 == 0);
+    }
+
+    public static boolean isPersianLeapYear(int year) {
+        throwIfPersianYearIsNotSupported(year);
+        return LeapYearsCalculator.persianLeapYears[year];
+    }
+
+    public static int getPreviousGregorianLeapYear(int year) {
+        if (year % 400 == 0) return year - 4;
+        if (year % 100 == 0) return year - 4;
+        year = year - ((year % 4 == 0) ? 4 : year % 4);
+        if (year % 400 == 0) return year;
+        if (year % 100 == 0) return year - 4;
+        return year;
+    }
+
+    public static int getPreviousPersianLeapYear(int year) {
+        throwIfPersianYearIsNotSupported(year);
+        for (year--; year != 0; year--) {
+            if (LeapYearsCalculator.persianLeapYears[year]) return year;
+        }
+        return 0; //should not happen.
+    }
+
+
     /*
      * This array contains 3000 boolean values with 726 of them set to 'true' representing leap years.
      * usage: persianLeapYears[year]

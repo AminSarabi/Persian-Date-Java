@@ -2,11 +2,13 @@ package ir.reyminsoft;
 
 import java.util.Calendar;
 
+import static ir.reyminsoft.LeapYearsCalculator.*;
+
 public class DateConverter {
-    public static final int MAX_SUPPORTED_GREGORIAN_YEAR = 3622;
+
 
     public static int[] convertGregorianToPersian(final int year, final int month, final int day) {
-        checkFields(year, month, day);
+        assertValidGregorianDateFields(year, month, day);
         Calendar calendar = getGregorianCalendarOf(year, month, day);
         int persianYear = year - 622;
         int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
@@ -16,7 +18,7 @@ public class DateConverter {
             //as the julian calendar was off by 10 from seasons, time moved 10 days forward!
         }
         int persianMonth, persianDayOfMonth = 0;
-        if (!isGregorianLeapYear(year)
+        if (isNotGregorianLeapYear(year)
                 && getGregorianCalendarOf(year, 2, 1).getActualMaximum(Calendar.DAY_OF_MONTH) == 29
                 && dayOfYear >= 60) {
             //this is a bug in java's implementation of calendar where a non-leap year has a 29-day-long february
@@ -59,18 +61,10 @@ public class DateConverter {
         int year = fields[0];
         int month = fields[1];
         int day = fields[2];
-        checkFields(year, month, day);
+        assertValidGregorianDateFields(year, month, day);
         return convertGregorianToPersian(year, month, day);
     }
 
-    public static boolean isPersianLeapYear(int year) {
-        if (year > MAX_SUPPORTED_GREGORIAN_YEAR - 621) {
-            throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 as we can not determine if it is a leap year or not.");
-        } else if (year <= 0) {
-            throw new RuntimeException("This program is not intended to be used for negative dates.");
-        }
-        return PreDetermined.persianLeapYears[year];
-    }
 
     public static Calendar getGregorianCalendarOf(int year, int month, int day) {
         Calendar calendar = Calendar.getInstance();
@@ -83,7 +77,7 @@ public class DateConverter {
     public static int getDaysOfMonthGregorian(int year /* might be a leap year */, int month) {
         Calendar calendar = getGregorianCalendarOf(year, month, 1);
         if (month == 2) {
-            if (!isGregorianLeapYear(year)
+            if (isNotGregorianLeapYear(year)
                     && getGregorianCalendarOf(year, 2, 1).getActualMaximum(Calendar.DAY_OF_MONTH) == 29) {
                 return 28;
                 //this is a bug in java's implementation of calendar where a non-leap year has a 29-day-long february
@@ -99,21 +93,8 @@ public class DateConverter {
         throw new RuntimeException("index out of bounds " + month + " for a persian month.");
     }
 
-    public static int getPreviousGregorianLeapYearsCount(int year) {
-        checkFields(year);
-        year = year - 1;
-        return Math.max((year / 4) - (
-                year >= 400 ? (year / 400) * 3 + (year % 400) / 100 :
-                        year >= 100 ? (year / 100)
-                                : 0), 0);
-    }
-
-    public static int getPreviousPersianLeapYearCount(int year) {
-        return PreDetermined.numberOfPreviousPersianLeapYears[year];
-    }
-
     public static int countOfDays(final int year, final int month, final int day) {
-        checkFields(year, month, day);
+        assertValidPersianDateFields(year, month, day);
         int sum = 0;
         for (int x = 1; x != year; x++) {
             sum += isPersianLeapYear(x) ? 366 : 365;
@@ -126,35 +107,11 @@ public class DateConverter {
 
     }
 
-    public static int getPreviousGregorianLeapYear(int year) {
-        if (year % 400 == 0) return year - 4;
-        if (year % 100 == 0) return year - 4;
-        year = year - ((year % 4 == 0) ? 4 : year % 4);
-        if (year % 400 == 0) return year;
-        if (year % 100 == 0) return year - 4;
-        return year;
-    }
-
-    public static int getPreviousPersianLeapYear(int year) {
-        for (year--; year != 0; year--) {
-            if (PreDetermined.persianLeapYears[year]) return year;
-        }
-        return 0; //should not happen.
-    }
-
-
-    public static boolean isGregorianLeapYear(int year) {
-        checkFields(year);
-        return year % 100 == 0 ? (year % 400 == 0) : year % 4 == 0;
-    }
-
-    private static void checkFields(int... ints) {
+    private static void assertValidPersianDateFields(int... ints) {
         for (int x = 0; x != ints.length; x++) {
             switch (x) {
                 case 0:
-                    if (ints[x] > MAX_SUPPORTED_GREGORIAN_YEAR || ints[x] <= 0) {
-                        throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 or before 1/1/1 as we can not determine if they are a leap year or not.");
-                    }
+                    LeapYearsCalculator.throwIfPersianYearIsNotSupported(ints[x]);
                     break;
                 case 1:
                     if (ints[x] > 12 || ints[x] <= 0) {
@@ -162,11 +119,46 @@ public class DateConverter {
                     }
                     break;
                 case 2:
-                    if (ints[x] > 31 || ints[x] <= 0) {
-                        throw new RuntimeException("invalid day value: " + ints[x]);
+                    if (ints[x] > getDaysOfMonthPersian(ints[0], ints[1]) || ints[x] <= 0) {
+                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
                     }
             }
         }
     }
 
+    private static void assertValidGregorianDateFields(int... ints) {
+        for (int x = 0; x != ints.length; x++) {
+            switch (x) {
+                case 0:
+                    LeapYearsCalculator.throwIfGregorianYearIsNotSupported(ints[x]);
+                    break;
+                case 1:
+                    if (ints[x] > 12 || ints[x] <= 0) {
+                        throw new RuntimeException("invalid month value: " + ints[x]);
+                    }
+                    break;
+                case 2:
+                    if (ints[x] > getDaysOfMonthGregorian(ints[0], ints[1]) || ints[x] <= 0) {
+                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
+                    }
+            }
+        }
+    }
+
+    public static long[] convertMillisToPersian(long time) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.setTimeInMillis(time);
+        int[] dateConversion = convertGregorianToPersian(calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        return new long[]{
+                dateConversion[0],
+                dateConversion[1],
+                dateConversion[2],
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                calendar.get(Calendar.SECOND),
+                calendar.get(Calendar.MILLISECOND)
+        };
+    }
 }
