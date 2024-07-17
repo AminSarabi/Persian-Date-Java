@@ -136,7 +136,7 @@ public class DateConverter {
     public static int[] addDaysToPersianDate(int[] persianDate, int days) {
         assertValidPersianDateFields(persianDate);
 
-        //this piece of code here speeds up this function for really high values of days by 60 times.
+        /*//this piece of code here speeds up this function for really high values of days by 60 times.
         int yearsToAdd = days / 365;
         if ((days > 366 || days < -366) && yearsToAdd < MAX_SUPPORTED_PERSIAN_YEAR - 2) {
             days = days % 365;
@@ -144,9 +144,9 @@ public class DateConverter {
                     - getPreviousPersianLeapYearCount(persianDate[0]);
         } else {
             yearsToAdd = 0;
-        }
+        }*/
 
-        return normalize(new int[]{persianDate[0], persianDate[1] + yearsToAdd * 12, persianDate[2] + days});
+        return normalize(new int[]{persianDate[0], persianDate[1] /*+ yearsToAdd * 12*/, persianDate[2] + days});
     }
 
 
@@ -246,6 +246,7 @@ public class DateConverter {
                 if (month == 0) break;
             }
             if (day <= 1 && month <= 1 && year < 1) break;
+            if (day == 0 && year == 1 && month == 1) break;
         }
         return new int[]{year, month, day};
     }

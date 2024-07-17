@@ -50,4 +50,23 @@ public class Utils {
         }
         return o.toString();
     }
+
+
+    public static String twoDigitAtLeast(int value) {
+        if (value < 10) return "0" + value;
+        return String.valueOf(value);
+    }
+
+    public static String threeDigitAtLeast(int value) {
+        if (value < 10) return "00" + value;
+        if (value < 100) return "0" + value;
+        return String.valueOf(value);
+    }
+
+    public static String fourDigitAtLeast(int value) {
+        if (value < 10) return "0" + value;
+        if (value < 100) return "00" + value;
+        if (value < 1000) return "000" + value;
+        return String.valueOf(value);
+    }
 }

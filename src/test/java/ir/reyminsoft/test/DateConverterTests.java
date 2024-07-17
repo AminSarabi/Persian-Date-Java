@@ -12,13 +12,14 @@ import java.util.Random;
 
 import static ir.reyminsoft.test.TestClassRunner.assertEquals;
 
-public class Test implements TestClass {
+public class DateConverterTests implements TestClass {
 
+
+    static Random random = new Random();
 
     public static void main(String[] args) {
-        TestClassRunner.run(Test.class);
+        TestClassRunner.run(DateConverterTests.class);
     }
-
 
     public static void test_non_leap_conversions() { /*none of the persian or gregorian years is a leap year.*/
         int[][] dates = new int[][]{
@@ -81,7 +82,6 @@ public class Test implements TestClass {
             assertEquals(expectedConversions[i], DateConverter.convertGregorianToPersian(dates[i]));
         }
     }
-
 
     public static void test_persian_leap_year() {
         int[][] dates = new int[][]{
@@ -175,6 +175,8 @@ public class Test implements TestClass {
     }
 
 
+    //these are a bunch of random conversions I have extracted from accurate sources.
+
     //these are a set of edge cases chosen and calculated by hand.
     public static void test_random_dates() {
         int[][] datesAndExpectedConversions = new int[][]{
@@ -212,8 +214,10 @@ public class Test implements TestClass {
         }
     }
 
-
-    //these are a bunch of random conversions I have extracted from accurate sources.
+    /*
+     * a brute force internal-consistency check.
+     * This is an interesting test that discovered 1582/10/5 incident in which time moved forward!
+     * */
 
     public static void test_random_dates2() {
         int[][] datesAndExpectedConversions = new int[][]{
@@ -657,11 +661,6 @@ public class Test implements TestClass {
         }
     }
 
-    /*
-     * a brute force internal-consistency check.
-     * This is an interesting test that discovered 1582/10/5 incident in which time moved forward!
-     * */
-
     public static void test_brute_force_1() {
         //we basically check that for each 1 day increment in gregorian calendar, the conversion also increases by 1 day.
         int current = 0;
@@ -677,7 +676,9 @@ public class Test implements TestClass {
         }
     }
 
-
+    /*
+     * This is another brute force internal-consistency check. every date->millis must also be millis->date
+     * */
 
     public static void test_brute_force_2() {
         //this test right here caused a lot of headache as it was written with java.calendar before.
@@ -709,13 +710,10 @@ public class Test implements TestClass {
 
     }
 
-    /*
-     * This is another brute force internal-consistency check. every date->millis must also be millis->date
-     * */
     public static void test_millis_conversion() {
-        for (int year = 1971; year != 2000; year++) {
-            for (int month = 3; month != 13; month++) {
-                for (int day = 22; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
+        for (int year = 623; year != LeapYearsCalculator.MAX_SUPPORTED_GREGORIAN_YEAR; year++) {
+            for (int month = 1; month != 13; month++) {
+                for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
                     LocalDateTime localDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
                     Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
                     long gregorian = instant.toEpochMilli();
@@ -733,13 +731,12 @@ public class Test implements TestClass {
         }
     }
 
-
     public static void add_days_function() {
         int[][] values = new int[][]{
-                /*new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 1, 2},
+                new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 1, 2},
                 new int[]{1, 1, 1}, new int[]{31}, new int[]{1, 2, 1},
                 new int[]{1, 1, 31}, new int[]{1}, new int[]{1, 2, 1},
-                new int[]{1403, 12, 29}, new int[]{1}, new int[]{1403, 12, 30},*/
+                new int[]{1403, 12, 29}, new int[]{1}, new int[]{1403, 12, 30},
                 new int[]{1403, 12, 30}, new int[]{1}, new int[]{1404, 1, 1},
                 new int[]{1, 1, 1}, new int[]{365}, new int[]{2, 1, 1},
                 new int[]{1, 1, 1}, new int[]{366}, new int[]{2, 1, 2},
@@ -755,7 +752,6 @@ public class Test implements TestClass {
             assertEquals(negativeCaseResult, date);
         }
     }
-
 
     public static void add_months_function() {
         int[][] values = new int[][]{
@@ -792,10 +788,9 @@ public class Test implements TestClass {
      * This is the reverse mode of the above test
      * */
     public static void test_millis_conversion_2() {
-        for (int year = 961; year != 3000; year++) {
+        for (int year = 1; year != 3000; year++) {
             for (int month = 1; month != 13; month++) {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
-                    if (year == 961 && month == 7 && day < 23 && day > 12) continue;
                     int[] date = new int[]{year, month, day};
                     long epochMillis = DateConverter.convertPersianToMillis(new int[]{year, month, day, 0, 0, 0, 0});
                     Instant instant = Instant.ofEpochMilli(epochMillis);
@@ -806,9 +801,6 @@ public class Test implements TestClass {
             }
         }
     }
-
-
-    static Random random = new Random();
 
     public static int[] getRandomGregorianDate() {
         int year = getRandomYear(), month = getRandomMonth();
