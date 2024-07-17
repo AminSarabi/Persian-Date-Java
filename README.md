@@ -1,8 +1,7 @@
 # Persian-Date-Java
 An easy-to-use and accurate Persian-Gregorian date converter written in java.
 
-Jalali / Shamsi / Persian / Iranian calendar is the official calendar used in iran which is considered by many to be the most accurate calendar
-in the world.
+Jalali / Shamsi / Persian / Iranian calendar is the official calendar used in iran which is considered by many to be the most accurate calendar in the world.
 
 
 ## Why this code?
@@ -11,7 +10,7 @@ in the world.
 
 #### 2. does not rely on invalid formulas to determine persian leap years (unlike most libraries)
 
-#### 3. takes into account the 1582 time travel incident
+#### 3. handles the 1582 time travel incident properly (unlike java.calendar)
 
 #### 4. uses efficient calculations (preferring pre-determined low-calculation methods)
 

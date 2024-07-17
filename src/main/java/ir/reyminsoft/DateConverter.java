@@ -94,45 +94,6 @@ public class DateConverter {
 
     }
 
-
-    private static void assertValidPersianDateFields(int... ints) {
-        for (int x = 0; x != ints.length; x++) {
-            switch (x) {
-                case 0:
-                    LeapYearsCalculator.throwIfPersianYearIsNotSupported(ints[x]);
-                    break;
-                case 1:
-                    if (ints[x] > 12 || ints[x] <= 0) {
-                        throw new RuntimeException("invalid month value: " + ints[x]);
-                    }
-                    break;
-                case 2:
-                    if (ints[x] > getDaysOfMonthPersian(ints[0], ints[1]) || ints[x] <= 0) {
-                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
-                    }
-            }
-        }
-    }
-
-    private static void assertValidGregorianDateFields(int... ints) {
-        for (int x = 0; x != ints.length; x++) {
-            switch (x) {
-                case 0:
-                    LeapYearsCalculator.throwIfGregorianYearIsNotSupported(ints[x]);
-                    break;
-                case 1:
-                    if (ints[x] > 12 || ints[x] <= 0) {
-                        throw new RuntimeException("invalid month value: " + ints[x]);
-                    }
-                    break;
-                case 2:
-                    if (ints[x] > getDaysOfMonthGregorian(ints[0], ints[1]) || ints[x] <= 0) {
-                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
-                    }
-            }
-        }
-    }
-
     public static int[] addDaysToPersianDate(int[] persianDate, int days) {
         assertValidPersianDateFields(persianDate);
 
@@ -263,6 +224,44 @@ public class DateConverter {
         if (month <= 11) return 30;
         //it is guarantied that month is 12 here.
         return isPersianLeapYear(year) ? 30 : 29;
+    }
+
+    private static void assertValidPersianDateFields(int... ints) {
+        for (int x = 0; x != ints.length; x++) {
+            switch (x) {
+                case 0:
+                    LeapYearsCalculator.throwIfPersianYearIsNotSupported(ints[x]);
+                    break;
+                case 1:
+                    if (ints[x] > 12 || ints[x] <= 0) {
+                        throw new RuntimeException("invalid month value: " + ints[x]);
+                    }
+                    break;
+                case 2:
+                    if (ints[x] > getDaysOfMonthPersian(ints[0], ints[1]) || ints[x] <= 0) {
+                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
+                    }
+            }
+        }
+    }
+
+    private static void assertValidGregorianDateFields(int... ints) {
+        for (int x = 0; x != ints.length; x++) {
+            switch (x) {
+                case 0:
+                    LeapYearsCalculator.throwIfGregorianYearIsNotSupported(ints[x]);
+                    break;
+                case 1:
+                    if (ints[x] > 12 || ints[x] <= 0) {
+                        throw new RuntimeException("invalid month value: " + ints[x]);
+                    }
+                    break;
+                case 2:
+                    if (ints[x] > getDaysOfMonthGregorian(ints[0], ints[1]) || ints[x] <= 0) {
+                        throw new RuntimeException("invalid day value: " + ints[x] + " in " + ints[0] + "/" + ints[1] + "/" + ints[2]);
+                    }
+            }
+        }
     }
 
 

@@ -1,8 +1,4 @@
-package ir.reyminsoft.test;
-
-import ir.reyminsoft.DateConverter;
-import ir.reyminsoft.LeapYearsCalculator;
-import ir.reyminsoft.Utils;
+package ir.reyminsoft;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -10,7 +6,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Random;
 
-import static ir.reyminsoft.test.TestClassRunner.assertEquals;
+import static ir.reyminsoft.TestClassRunner.assertEquals;
 
 public class DateConverterTests implements TestClass {
 

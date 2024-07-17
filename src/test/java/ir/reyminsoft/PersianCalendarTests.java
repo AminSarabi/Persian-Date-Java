@@ -1,9 +1,6 @@
-package ir.reyminsoft.test;
+package ir.reyminsoft;
 
-import ir.reyminsoft.DateConverter;
-import ir.reyminsoft.PersianCalendar;
-
-import static ir.reyminsoft.test.TestClassRunner.assertEquals;
+import static ir.reyminsoft.TestClassRunner.assertEquals;
 
 public class PersianCalendarTests implements TestClass {
 

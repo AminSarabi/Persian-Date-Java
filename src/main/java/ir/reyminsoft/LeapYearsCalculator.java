@@ -22,7 +22,7 @@ public class LeapYearsCalculator {
      *
      *
      * */
-    public static final boolean[] persianLeapYears = new boolean[]{
+    private static final boolean[] persianLeapYears = new boolean[]{
             false, false, false, false, true, false, false, false, false, true, false, false, false, true, false, false,
             false, true, false, false, false, true, false, false, false, true, false, false, false, true, false, false,
             false, true, false, false, false, false, true, false, false, false, true, false, false, false, true, false,
@@ -222,7 +222,7 @@ public class LeapYearsCalculator {
      * previous leap years, but this array has the results ready to go.
      *
      * */
-    public static final short[] numberOfPreviousPersianLeapYears = new short[]{
+    private static final short[] numberOfPreviousPersianLeapYears = new short[]{
             0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
             3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7,
             7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11,
@@ -413,12 +413,12 @@ public class LeapYearsCalculator {
             725, 725, 725, 725, 726, 726, 726,
     };
 
-    public static void throwIfGregorianYearIsNotSupported(int year) {
+    protected static void throwIfGregorianYearIsNotSupported(int year) {
         if (year > MAX_SUPPORTED_GREGORIAN_YEAR)
             throw new RuntimeException("gregorian years after " + MAX_SUPPORTED_GREGORIAN_YEAR + " are not supported: " + year);
     }
 
-    public static void throwIfPersianYearIsNotSupported(int year) {
+    protected static void throwIfPersianYearIsNotSupported(int year) {
         if (year >= MAX_SUPPORTED_PERSIAN_YEAR) {
             throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 as we can not determine if it is a leap year or not.");
         } else if (year < 0) {

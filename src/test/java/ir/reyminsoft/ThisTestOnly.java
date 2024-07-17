@@ -1,4 +1,4 @@
-package ir.reyminsoft.test;
+package ir.reyminsoft;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

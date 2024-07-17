@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'ir.reyminsoft'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -11,4 +11,13 @@ repositories {
 
 dependencies {
 
+}
+jar{
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Main-Class': 'com.reyminsoft.PersianCalendar'
+        )
+    }
 }

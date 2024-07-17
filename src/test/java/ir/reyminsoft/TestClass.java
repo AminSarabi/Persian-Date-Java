@@ -1,4 +1,4 @@
-package ir.reyminsoft.test;
+package ir.reyminsoft;
 
 public interface TestClass {
 }

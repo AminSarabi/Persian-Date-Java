@@ -3,7 +3,8 @@ package ir.reyminsoft;
 import java.util.Arrays;
 
 public class Utils {
-    public static void print(Object... args) {
+
+    static void print(Object... args) {
         StringBuilder stringBuilder = new StringBuilder();
         boolean isFirst = true;
         for (Object o : args) {
@@ -14,7 +15,7 @@ public class Utils {
         System.out.println(stringBuilder);
     }
 
-    public static boolean equals(Object o, Object o2) {
+    protected static boolean equals(Object o, Object o2) {
         if (o == o2) return true;
         if (o2 == null) return false;
         if (o == null) return false;
@@ -35,8 +36,7 @@ public class Utils {
         return o.equals(o2);
     }
 
-
-    public static String stringify(Object o) {
+    protected static String stringify(Object o) {
         if (o == null) return null;
         if (o.getClass().isArray()) {
             if (o instanceof int[]) return Arrays.toString((int[]) o);
@@ -51,19 +51,18 @@ public class Utils {
         return o.toString();
     }
 
-
-    public static String twoDigitAtLeast(int value) {
+    protected static String twoDigitAtLeast(int value) {
         if (value < 10) return "0" + value;
         return String.valueOf(value);
     }
 
-    public static String threeDigitAtLeast(int value) {
+    protected static String threeDigitAtLeast(int value) {
         if (value < 10) return "00" + value;
         if (value < 100) return "0" + value;
         return String.valueOf(value);
     }
 
-    public static String fourDigitAtLeast(int value) {
+    protected static String fourDigitAtLeast(int value) {
         if (value < 10) return "0" + value;
         if (value < 100) return "00" + value;
         if (value < 1000) return "000" + value;
