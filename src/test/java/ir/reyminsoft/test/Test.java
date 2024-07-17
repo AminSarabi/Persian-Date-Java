@@ -680,7 +680,6 @@ public class Test implements TestClass {
 
 
     public static void test_brute_force_2() {
-        long before = System.currentTimeMillis();
         //this test right here caused a lot of headache as it was written with java.calendar before.
 
         // java.calendar had 2 severe bugs:
@@ -708,8 +707,6 @@ public class Test implements TestClass {
             }
         }
 
-
-        Utils.print(System.currentTimeMillis() - before);
     }
 
     /*
