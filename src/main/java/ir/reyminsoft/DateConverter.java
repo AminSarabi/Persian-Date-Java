@@ -135,58 +135,24 @@ public class DateConverter {
 
     public static int[] addDaysToPersianDate(int[] persianDate, int days) {
         assertValidPersianDateFields(persianDate);
-        int year = persianDate[0];
-        int month = persianDate[1];
-        int day = persianDate[2] + days;
-        while (day > getDaysOfMonthPersian(year, month)) {
-            day -= getDaysOfMonthPersian(year, month);
-            month++;
-            if (month > 12) {
-                year++;
-                month = 1;
-            }
 
+        //this piece of code here speeds up this function for really high values of days by 60 times.
+        int yearsToAdd = days / 365;
+        if ((days > 366 || days < -366) && yearsToAdd < MAX_SUPPORTED_PERSIAN_YEAR - 2) {
+            days = days % 365;
+            days -= getPreviousPersianLeapYearCount(persianDate[0] + yearsToAdd)
+                    - getPreviousPersianLeapYearCount(persianDate[0]);
+        } else {
+            yearsToAdd = 0;
         }
-        while (day < 1) {
-            month--;
-            if (month == 0) {
-                month = 12;
-                year--;
-            }
-            day += getDaysOfMonthPersian(year, month); //todo forward backward
-        }
-        while (month < 1) {
-            year--;
-            month += 12;
-            if (month == 0) {
-                month = 12;
-            }
-        }
-        while (month > 12) {
-            year++;
-            month -= 12;
-        }
-        LeapYearsCalculator.throwIfPersianYearIsNotSupported(year);
-        return new int[]{year, month, day};
+
+        return normalize(new int[]{persianDate[0], persianDate[1] + yearsToAdd * 12, persianDate[2] + days});
     }
+
 
     public static int[] addMonthsToPersianDate(int[] persianDate, int months) {
         assertValidPersianDateFields(persianDate);
-        int year = persianDate[0];
-        int month = persianDate[1] + months;
-        int day = persianDate[2];
-        while (month < 1) {
-            year--;
-            month += 12;
-            if (month == 0) {
-                month = 12;
-            }
-        }
-        while (month > 12) {
-            year++;
-            month -= 12;
-        }
-        return new int[]{year, month, day};
+        return normalize(new int[]{persianDate[0], persianDate[1] + months, persianDate[2]});
     }
 
     public static int[] addYearsToPersianDate(int[] persianDate, int years) {
@@ -194,6 +160,7 @@ public class DateConverter {
         int year = persianDate[0] + years;
         int month = persianDate[1];
         int day = persianDate[2];
+        LeapYearsCalculator.throwIfPersianYearIsNotSupported(year);
         return new int[]{year, month, day};
     }
 
@@ -226,6 +193,75 @@ public class DateConverter {
                 persianDateTime[5] * 1000L +
                 persianDateTime[6];
 
+    }
+
+    /**
+     * This method is only meant to be used internally to avoid repeating code.
+     * it performs the best effort to normalize the values
+     * only one of the values of persianDate has to be abnormal: either day or month.
+     */
+    private static int[] normalize(int[] values) {
+        int year = values[0];
+        int month = values[1];
+        int day = values[2];
+
+        //try to adjust month and year.
+        while (month > 12 || month < 1 || day > getDaysOfMonthPersian(year, month) || day < 1) {
+            while (month > 12 && year < MAX_SUPPORTED_PERSIAN_YEAR - 1) {
+                year++;
+                month -= 12;
+            }
+            while (day < 1 && month > 1) {
+                month--;
+                //there is no need to check for month changing year here because month is always more than 1
+                day += getDaysOfMonthPersian(year, month, false);
+            }
+            while (day > getDaysOfMonthPersian(year, month, true)) {
+                day -= getDaysOfMonthPersian(year, month, true);
+                month++;
+                if (month > 12) {
+                    month -= 12;
+                    year++;
+                }
+            }
+            if (day > 1 && year < 1) {
+                day -= isPersianLeapYear(year) ? 366 : 365;
+                year++;
+            }
+            if (day < 1 && year > 1) {
+                year--;
+                day += isPersianLeapYear(year) ? 366 : 365;
+            }
+            while (month < 1 && year > 0) {
+                month += 12;
+                year--;
+            }
+            while (day < 1 && month > 1) {
+                month--;
+                day += getDaysOfMonthPersian(year, month, false);
+            }
+            while (day >= 1 && month < 1) {
+                day -= getDaysOfMonthPersian(year, month, true);
+                month++;
+                if (month == 0) break;
+            }
+            if (day <= 1 && month <= 1 && year < 1) break;
+        }
+        return new int[]{year, month, day};
+    }
+
+    private static int getDaysOfMonthPersian(int year /* might be a leap year */, int month, boolean forward) {
+        if (month > 12 || month < -12) month = month % 12;
+        if (month == 0) month = forward ? 1 : 12;
+        if (month == 12 && !forward) {
+            year--;
+        }
+        if (month < 0) month = month + 13;
+        month = Math.abs(month);
+        if (month <= 6) return 31;
+        if (month <= 11) return 30;
+        //it is guarantied that month is 12 here.
+        return isPersianLeapYear(year) ? 30 : 29;
     }
 
 

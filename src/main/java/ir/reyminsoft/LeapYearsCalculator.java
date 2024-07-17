@@ -12,7 +12,7 @@ public class LeapYearsCalculator {
     }
 
     public static void throwIfPersianYearIsNotSupported(int year) {
-        if (year > MAX_SUPPORTED_GREGORIAN_YEAR - 621) {
+        if (year >= MAX_SUPPORTED_PERSIAN_YEAR) {
             throw new RuntimeException("This program is not intended to be used for persian dates after 3000/1/1 as we can not determine if it is a leap year or not.");
         } else if (year < 0) {
             throw new RuntimeException("This program is not intended to be used for negative dates: " + year);

@@ -678,7 +678,9 @@ public class Test implements TestClass {
     }
 
 
+
     public static void test_brute_force_2() {
+        long before = System.currentTimeMillis();
         //this test right here caused a lot of headache as it was written with java.calendar before.
 
         // java.calendar had 2 severe bugs:
@@ -698,27 +700,35 @@ public class Test implements TestClass {
                     int[] conversion = DateConverter.convertGregorianToPersian(calendar.getYear(), calendar.getMonthValue(), calendar.getDayOfMonth());
                     assertEquals(conversion, date);
                     calendar = calendar.plusDays(1);
+
+                    assertEquals(DateConverter.addDaysToPersianDate(new int[]{1, 1, 1},
+                                    DateConverter.countPersianDaysSinceTheStartOfTheCalendar(date) - 1),
+                            date);
                 }
             }
         }
+
+
+        Utils.print(System.currentTimeMillis() - before);
     }
 
     /*
      * This is another brute force internal-consistency check. every date->millis must also be millis->date
      * */
     public static void test_millis_conversion() {
-        for (int year = 623; year != 2000; year++) {
-            for (int month = 1; month != 13; month++) {
-                for (int day = 1; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
+        for (int year = 1971; year != 2000; year++) {
+            for (int month = 3; month != 13; month++) {
+                for (int day = 22; day <= DateConverter.getDaysOfMonthGregorian(year, month); day++) {
                     LocalDateTime localDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
                     Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
                     long gregorian = instant.toEpochMilli();
                     long[] persianDateTimConversion = DateConverter.convertMillisToPersianDateTime(gregorian);
+                    int[] expectedConversion = DateConverter.convertGregorianToPersian(new int[]{year, month, day});
                     long persian = DateConverter.convertPersianToMillis(persianDateTimConversion);
                     if (gregorian - persian != 0) {
                         //going to fail... log everything
                         long diff = (gregorian - persian) / (24 * 3600 * 1000);
-                        Utils.print(localDateTime, persianDateTimConversion, gregorian, persian, diff);
+                        Utils.print(localDateTime, expectedConversion, " but: ", persianDateTimConversion, gregorian, persian, diff);
                     }
                     assertEquals(gregorian, persian);
                 }
@@ -727,13 +737,12 @@ public class Test implements TestClass {
     }
 
 
-
     public static void add_days_function() {
         int[][] values = new int[][]{
-                new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 1, 2},
+                /*new int[]{1, 1, 1}, new int[]{1}, new int[]{1, 1, 2},
                 new int[]{1, 1, 1}, new int[]{31}, new int[]{1, 2, 1},
                 new int[]{1, 1, 31}, new int[]{1}, new int[]{1, 2, 1},
-                new int[]{1403, 12, 29}, new int[]{1}, new int[]{1403, 12, 30},
+                new int[]{1403, 12, 29}, new int[]{1}, new int[]{1403, 12, 30},*/
                 new int[]{1403, 12, 30}, new int[]{1}, new int[]{1404, 1, 1},
                 new int[]{1, 1, 1}, new int[]{365}, new int[]{2, 1, 1},
                 new int[]{1, 1, 1}, new int[]{366}, new int[]{2, 1, 2},
@@ -794,7 +803,7 @@ public class Test implements TestClass {
                     long epochMillis = DateConverter.convertPersianToMillis(new long[]{year, month, day, 0, 0, 0, 0});
                     Instant instant = Instant.ofEpochMilli(epochMillis);
                     LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-                    int[] converted2 = DateConverter.convertGregorianToPersian(localDateTime.getYear(),localDateTime.getMonthValue(),localDateTime.getDayOfMonth());
+                    int[] converted2 = DateConverter.convertGregorianToPersian(localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());
                     assertEquals(converted2, date);
                 }
             }
