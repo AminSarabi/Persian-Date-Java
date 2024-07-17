@@ -719,7 +719,7 @@ public class Test implements TestClass {
                     LocalDateTime localDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
                     Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
                     long gregorian = instant.toEpochMilli();
-                    long[] persianDateTimConversion = DateConverter.convertMillisToPersianDateTime(gregorian);
+                    int[] persianDateTimConversion = DateConverter.convertMillisToPersianDateTime(gregorian);
                     int[] expectedConversion = DateConverter.convertGregorianToPersian(new int[]{year, month, day});
                     long persian = DateConverter.convertPersianToMillis(persianDateTimConversion);
                     if (gregorian - persian != 0) {
@@ -797,7 +797,7 @@ public class Test implements TestClass {
                 for (int day = 1; day <= DateConverter.getDaysOfMonthPersian(year, month); day++) {
                     if (year == 961 && month == 7 && day < 23 && day > 12) continue;
                     int[] date = new int[]{year, month, day};
-                    long epochMillis = DateConverter.convertPersianToMillis(new long[]{year, month, day, 0, 0, 0, 0});
+                    long epochMillis = DateConverter.convertPersianToMillis(new int[]{year, month, day, 0, 0, 0, 0});
                     Instant instant = Instant.ofEpochMilli(epochMillis);
                     LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
                     int[] converted2 = DateConverter.convertGregorianToPersian(localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());

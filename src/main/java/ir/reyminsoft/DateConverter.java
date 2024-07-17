@@ -164,25 +164,25 @@ public class DateConverter {
         return new int[]{year, month, day};
     }
 
-    public static long[] convertMillisToPersianDateTime(long epochMillis) {
+    public static int[] convertMillisToPersianDateTime(long epochMillis) {
         long daysToAdd = epochMillis / (24 * 3600 * 1000);
         int[] conversion = addDaysToPersianDate(new int[]{1348, 10, 11}, (int) daysToAdd);
         long timeLeft = epochMillis % (24 * 3600 * 1000);
-        long hours = timeLeft / (3600 * 1000);
+        int hours = (int) (timeLeft / (3600 * 1000));
         timeLeft %= (3600 * 1000);
-        long minutes = timeLeft / (60 * 1000);
+        int minutes = (int) (timeLeft / (60 * 1000));
         timeLeft %= (60 * 1000);
-        long seconds = timeLeft / 1000;
+        int seconds = (int) (timeLeft / 1000);
         timeLeft %= 1000;
-        long millis = timeLeft;
-        return new long[]{conversion[0], conversion[1], conversion[2], hours, minutes, seconds, millis};
+        int millis = (int) timeLeft;
+        return new int[]{conversion[0], conversion[1], conversion[2], hours, minutes, seconds, millis};
     }
 
-    public static long convertPersianToMillis(long[] persianDateTime) {
+    public static long convertPersianToMillis(int[] persianDateTime) {
         int days = countPersianDaysSinceTheStartOfTheCalendar(
-                (int) persianDateTime[0],
-                (int) persianDateTime[1],
-                (int) persianDateTime[2]);
+                persianDateTime[0],
+                persianDateTime[1],
+                persianDateTime[2]);
 
         int days2 = countPersianDaysSinceTheStartOfTheCalendar(1348, 10, 11); //this is 1970/1/1 in persian
 
