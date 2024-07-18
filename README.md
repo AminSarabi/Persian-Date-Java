@@ -4,6 +4,20 @@ An easy-to-use and accurate Persian-Gregorian date converter written in java.
 Jalali / Shamsi / Persian / Iranian calendar is the official calendar used in iran which is considered by many to be the most accurate calendar in the world.
 
 
+## Examples
+
+`PersianCalendar calendar = new PersianCalendar(0) //millis`
+
+`PersianCalendar calendar = new PersianCalendar(1403,4,29) //date`
+
+`calendar.getStartOfTheNextMonth() //easily access common dates` 
+
+`calendar.getYear()` 
+
+`calendar.toStringDateYYYYMMDD() //returns formatted date`
+
+
+
 ## Why this code?
 
 #### 1. it is accurate in a wide range (from the start of the persian calendar to its 3000th year )
@@ -18,6 +32,7 @@ Jalali / Shamsi / Persian / Iranian calendar is the official calendar used in ir
 
 #### 6. has zero dependencies and is pure java
 
+#### 7. can be used in all android versions 
 
 
 this code is not intended to be used for dates out of its supported range
