@@ -815,4 +815,27 @@ public class DateConverterTests implements TestClass {
     public static int getRandomDay(int year, int month) {
         return random.nextInt(DateConverter.getDaysOfMonthGregorian(year, month)) + 1;
     }
+
+
+    @ThisTestOnly
+    public static void test_get_day_of_week(){
+        assertEquals(6,DateConverter.getDayOfWeek(1,1,1));
+        assertEquals(0,DateConverter.getDayOfWeek(1,1,2));
+        assertEquals(1,DateConverter.getDayOfWeek(1,1,3));
+        assertEquals(2,DateConverter.getDayOfWeek(1,1,4));
+        assertEquals(3,DateConverter.getDayOfWeek(1,1,5));
+        assertEquals(4,DateConverter.getDayOfWeek(1,1,6));
+        assertEquals(5,DateConverter.getDayOfWeek(1,1,7));
+        assertEquals(6,DateConverter.getDayOfWeek(1,1,8));
+        assertEquals(0,DateConverter.getDayOfWeek(1,1,9));
+        assertEquals(1,DateConverter.getDayOfWeek(1403,4,31));
+        assertEquals(0,DateConverter.getDayOfWeek(1403,4,30));
+        assertEquals(6,DateConverter.getDayOfWeek(1403,4,29));
+        assertEquals(5,DateConverter.getDayOfWeek(1403,4,28));
+        assertEquals(4,DateConverter.getDayOfWeek(1403,4,27));
+        assertEquals(3,DateConverter.getDayOfWeek(1403,4,26));
+        assertEquals(2,DateConverter.getDayOfWeek(1403,4,25));
+        assertEquals(1,DateConverter.getDayOfWeek(1403,4,24));
+        assertEquals(0,DateConverter.getDayOfWeek(1403,4,23));
+    }
 }

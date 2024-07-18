@@ -76,6 +76,13 @@ public class DateConverter {
         throw new RuntimeException("index out of bounds " + month + " for a persian month.");
     }
 
+    public static int getDayOfWeek(int year, int month, int day) {
+        int daysPast = countPersianDaysSinceTheStartOfTheCalendar(year, month, day) - 1;
+        int diff = daysPast % 7;
+        return diff == 0 ? 6 : diff - 1;
+    }
+
+
     public static int countPersianDaysSinceTheStartOfTheCalendar(final int year, final int month, final int day) {
         assertValidPersianDateFields(year, month, day);
         int sum = 0;
@@ -94,6 +101,7 @@ public class DateConverter {
 
     }
 
+
     public static int[] addDaysToPersianDate(int[] persianDate, int days) {
         assertValidPersianDateFields(persianDate);
 
@@ -110,7 +118,6 @@ public class DateConverter {
         return normalize(new int[]{persianDate[0], persianDate[1] /*+ yearsToAdd * 12*/, persianDate[2] + days});
     }
 
-
     public static int[] addMonthsToPersianDate(int[] persianDate, int months) {
         assertValidPersianDateFields(persianDate);
         return normalize(new int[]{persianDate[0], persianDate[1] + months, persianDate[2]});
@@ -124,6 +131,7 @@ public class DateConverter {
         LeapYearsCalculator.throwIfPersianYearIsNotSupported(year);
         return new int[]{year, month, day};
     }
+
 
     public static int[] convertMillisToPersianDateTime(long epochMillis) {
         long daysToAdd = epochMillis / (24 * 3600 * 1000);
@@ -155,6 +163,7 @@ public class DateConverter {
                 persianDateTime[6];
 
     }
+
 
     /**
      * This method is only meant to be used internally to avoid repeating code.

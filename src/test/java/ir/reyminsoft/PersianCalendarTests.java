@@ -36,6 +36,9 @@ public class PersianCalendarTests implements TestClass {
                         previousDay = today;
                     }
                     daysPassed++;
+                    if (daysPassed > 21)
+                        assertEquals(today.getStartOfTheNextWeek().getStartOfTheWeek().getStartOfThePreviousWeek()
+                                , today.getStartOfTheWeek());
                 }
             }
         }

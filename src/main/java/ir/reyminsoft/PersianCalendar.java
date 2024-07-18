@@ -84,15 +84,36 @@ public class PersianCalendar {
         return new PersianCalendar(values);
     }
 
+    public int getDayOfWeekIndex() {
+        return DateConverter.getDayOfWeek(year, month, day);
+    }
+
+    public String getDayOfWeekName() {
+        return switch (getDayOfWeekIndex()) {
+            case 0 -> "شنبه";
+            case 1 -> "یک\u200Cشنبه";
+            case 2 -> "دو\u200Cشنبه";
+            case 3 -> "سه\u200Cشنبه";
+            case 4 -> "چهارشنبه";
+            case 5 -> "پنج\u200Cشنبه";
+            case 6 -> "جمعه";
+            default -> "خطای محاسبه روز هفته"; //this does not happen
+        };
+    }
+
+
+    public PersianCalendar getStartOfThePreviousWeek() {
+        return new PersianCalendar(DateConverter.addDaysToPersianDate(getStartOfTheWeek().getFields(), -7));
+    }
+
+
 
     public PersianCalendar getStartOfTheWeek() {
-        //todo
-        return null;
+        return new PersianCalendar(DateConverter.addDaysToPersianDate(getFields(), -getDayOfWeekIndex()));
     }
 
     public PersianCalendar getStartOfTheNextWeek() {
-        //todo
-        return null;
+        return new PersianCalendar(DateConverter.addDaysToPersianDate(getStartOfTheWeek().getFields(), 7));
     }
 
 
